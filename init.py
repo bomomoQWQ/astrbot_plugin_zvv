@@ -29,10 +29,16 @@ IMAGES_URL = "https://github.com/bomomoQWQ/astrbot_plugin_zvv_peijian/releases/d
 
 
 def download(url: str, dest: Path, desc: str) -> bool:
-    """下载文件，带进度条。"""
+    """下载文件，带进度条。自动使用 HTTPS_PROXY 环境变量。"""
     print(f"[init] 下载 {desc}...")
     print(f"        {url}")
     try:
+        # 支持代理
+        proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+        if proxy:
+            from urllib.request import ProxyHandler, build_opener, install_opener
+            install_opener(build_opener(ProxyHandler({"https": proxy, "http": proxy})))
+            print(f"        使用代理: {proxy}")
         def reporthook(block_num, block_size, total_size):
             downloaded = block_num * block_size
             if total_size > 0:
