@@ -285,15 +285,30 @@ class Main(Star):
             return []
 
         engine = self._get_engine()
-        query_vec = engine.encode(query)  # 已归一化
-
+        query_vec = engine.encode(query)
         scores = np.dot(self._embeddings, query_vec)
-        indices = np.argsort(scores)[::-1][:top_k]
-
+        # 先取 top_k * 3 高分候选，再用 MMR 挑出多样化的 top_k
+        pool_size = min(top_k * 3, len(self._image_names))
+        pool_indices = np.argsort(scores)[::-1][:pool_size]
+        diverse = self._mmr_select(pool_indices, scores, top_k)
         return [
             {"id": idx + 1, "name": self._image_names[int(i)], "score": float(scores[int(i)])}
-            for idx, i in enumerate(indices)
+            for idx, i in enumerate(diverse)
         ]
+
+    def _mmr_select(self, candidates: np.ndarray, scores: np.ndarray, top_k: int, lam: float = 0.6) -> list:
+        """MMR 多样性重排：相关但不重复。lam 越大越看重相关度，越小越看重多样性。"""
+        remaining = list(candidates)
+        selected = [remaining.pop(0)]  # 第一个选最高分
+        while len(selected) < top_k and remaining:
+            mmr = []
+            for r in remaining:
+                rel = float(scores[r])
+                sim_max = max(float(np.dot(self._embeddings[r], self._embeddings[s])) for s in selected)
+                mmr.append(lam * rel - (1 - lam) * sim_max)
+            best = remaining.pop(int(np.argmax(mmr)))
+            selected.append(best)
+        return selected
 
     # ══════════════════════════════
     #  会话状态
@@ -344,7 +359,7 @@ class Main(Star):
                 好的例子: "印度被0比7剃头" "美国加关税自讨苦吃" "日本军国主义可笑"
                 不要只写情绪词如"自信""不屑"，结合具体话题才有区分度。
 
-        选择原则：优先挑最有梗、最诙谐、似绷非绷的那张，不要选太正经的。 "表示赞同"
+        选择原则：优先挑最乐子、最贻笑大方、最似绷非绷的那张，避开正经说教的。像"国际笑话""挺搞笑的""笑掉大牙"这类优先。 "表示赞同"
         """
         event = _unwrap_event(event)
         mood = str(mood or "").strip()
