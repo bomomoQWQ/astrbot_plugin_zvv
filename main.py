@@ -26,7 +26,7 @@ os.environ.setdefault("MKL_NUM_THREADS", _threads)        # NumPy (MKL)
 from astrbot.api import logger
 from astrbot.api.event import filter, AstrMessageEvent, MessageChain
 from astrbot.api.message_components import Image
-from astrbot.api.star import Context, Star
+from astrbot.api.star import Context, Star, StarTools
 
 
 # ═══════════════════════════════════════
@@ -177,11 +177,11 @@ class Main(Star):
     def __init__(self, context: Context, config: dict | None = None):
         super().__init__(context)
 
-        # ── 内置路径，零配置 ──
-        plugin_dir = Path(__file__).parent
-        self.image_dir = plugin_dir / "images"
-        self.model_dir = str(plugin_dir / "model_zvv")
-        self.cache_dir = plugin_dir / "data" / "cache"
+        # ── 持久化路径（重装插件不丢数据）──
+        data_root = Path(StarTools.get_data_dir("astrbot_plugin_zvv"))
+        self.image_dir = data_root / "images"
+        self.model_dir = str(data_root / "model_zvv")
+        self.cache_dir = data_root / "cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache_path = self.cache_dir / "embeddings.pkl"
 

@@ -13,6 +13,16 @@ from pathlib import Path
 
 PLUGIN_DIR = Path(__file__).parent
 
+# ── 持久化目录（与 main.py 一致，重装不丢）──
+def _get_data_root() -> Path:
+    """获取 AstrBot 全局持久化目录"""
+    try:
+        from astrbot.api.star import StarTools
+        return Path(StarTools.get_data_dir("astrbot_plugin_zvv"))
+    except ImportError:
+        # 回退：非 AstrBot 环境中手动运行时用插件目录
+        return PLUGIN_DIR / "data"
+
 # ── 下载源（改成你自己的仓库地址）──
 MODEL_URL = "https://github.com/bomomoQWQ/astrbot_plugin_zvv_peijian/releases/download/v1.0/model_zvv.zip"
 IMAGES_URL = "https://github.com/bomomoQWQ/astrbot_plugin_zvv_peijian/releases/download/v1.0/images.zip"
@@ -58,8 +68,9 @@ def extract(zip_path: Path, target_dir: Path, desc: str) -> bool:
 
 def check_and_download() -> bool:
     """检查模型和图片，缺失则下载。"""
-    model_dir = PLUGIN_DIR / "model_zvv"
-    images_dir = PLUGIN_DIR / "images"
+    data_root = _get_data_root()
+    model_dir = data_root / "model_zvv"
+    images_dir = data_root / "images"
     need_model = not (model_dir / "model_q8.onnx").exists()
     need_images = not any(images_dir.iterdir()) if images_dir.exists() else True
 
@@ -73,8 +84,8 @@ def check_and_download() -> bool:
 
     # ── 下载模型 ──
     if need_model:
-        zip_path = PLUGIN_DIR / "data" / "model_zvv.zip"
-        if not download(MODEL_URL, zip_path, "ONNX 模型 (~98MB)"):
+        zip_path = data_root / "data" / "model_zvv.zip"
+        if not download(MODEL_URL, zip_path, "ONNX 模型 (~74MB)"):
             print("[init] 模型下载失败，请检查网络或手动放置文件。")
             return False
         if not extract(zip_path, model_dir, "ONNX 模型"):
@@ -83,7 +94,7 @@ def check_and_download() -> bool:
 
     # ── 下载图片 ──
     if need_images:
-        zip_path = PLUGIN_DIR / "data" / "images.zip"
+        zip_path = data_root / "data" / "images.zip"
         if not download(IMAGES_URL, zip_path, "表情包图片 (~31MB)"):
             print("[init] 图片下载失败。可手动放入 images/ 目录。")
             return False
