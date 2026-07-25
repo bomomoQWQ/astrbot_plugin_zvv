@@ -119,7 +119,6 @@ class EmbeddingEngine:
             input_ids[i, :n] = enc.ids
             attention_mask[i, :n] = enc.attention_mask
 
-        # ── ONNX 推理 → token embeddings ──
         # ── ONNX 推理 → sentence_embedding（模型已完成 mean pooling）──
         outputs = self.session.run(
             None,
