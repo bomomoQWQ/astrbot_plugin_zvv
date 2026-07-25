@@ -23,39 +23,54 @@ def _get_data_root() -> Path:
         # 回退：非 AstrBot 环境中手动运行时用插件目录
         return PLUGIN_DIR / "data"
 
-# ── 下载源（改成你自己的仓库地址）──
+# ── 下载源 ──
 MODEL_URL = "https://github.com/bomomoQWQ/astrbot_plugin_zvv_peijian/releases/download/v1.0/model_zvv.zip"
 IMAGES_URL = "https://github.com/bomomoQWQ/astrbot_plugin_zvv_peijian/releases/download/v1.0/images.zip"
 
+# ── 备用代理（直连失败自动尝试）──
+FALLBACK_PROXY = os.environ.get("ZVV_PROXY", "http://192.168.1.254:5078")
 
 def download(url: str, dest: Path, desc: str) -> bool:
-    """下载文件，带进度条。自动使用 HTTPS_PROXY 环境变量。"""
+    """下载文件，直连失败自动走代理。"""
     print(f"[init] 下载 {desc}...")
     print(f"        {url}")
-    try:
-        # 支持代理
-        proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
-        if proxy:
-            from urllib.request import ProxyHandler, build_opener, install_opener
-            install_opener(build_opener(ProxyHandler({"https": proxy, "http": proxy})))
-            print(f"        使用代理: {proxy}")
-        def reporthook(block_num, block_size, total_size):
-            downloaded = block_num * block_size
-            if total_size > 0:
-                pct = min(100, downloaded * 100 // total_size)
-                print(f"\r        进度: {pct}%", end="", flush=True)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_suffix(".tmp")
 
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        tmp = dest.with_suffix(".tmp")
-        urllib.request.urlretrieve(url, tmp, reporthook)
-        print()  # newline
-        shutil.move(str(tmp), str(dest))
+    def _do_download(use_proxy: bool) -> bool:
+        try:
+            if use_proxy:
+                proxy = FALLBACK_PROXY
+                from urllib.request import ProxyHandler, build_opener, install_opener
+                install_opener(build_opener(ProxyHandler({"https": proxy, "http": proxy})))
+                print(f"        走代理: {proxy}")
+
+            def reporthook(block_num, block_size, total_size):
+                downloaded = block_num * block_size
+                if total_size > 0:
+                    pct = min(100, downloaded * 100 // total_size)
+                    print(f"\r        进度: {pct}%", end="", flush=True)
+
+            urllib.request.urlretrieve(url, tmp, reporthook)
+            print()
+            shutil.move(str(tmp), str(dest))
+            return True
+        except Exception as e:
+            if tmp.exists():
+                tmp.unlink()
+            if not use_proxy and FALLBACK_PROXY:
+                print(f"        直连失败 ({e})，尝试代理...")
+                return False  # 触发代理重试
+            print(f"\n[init] 下载失败: {e}")
+            return False
+
+    # 先直连
+    if _do_download(use_proxy=False):
         return True
-    except Exception as e:
-        print(f"\n[init] 下载失败: {e}")
-        if tmp.exists():
-            tmp.unlink()
-        return False
+    # 直连失败走代理
+    if FALLBACK_PROXY:
+        return _do_download(use_proxy=True)
+    return False
 
 
 def extract(zip_path: Path, target_dir: Path, desc: str) -> bool:
