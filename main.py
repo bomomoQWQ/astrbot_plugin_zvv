@@ -352,7 +352,7 @@ class Main(Star):
 
     @filter.llm_tool(name="search_zvv")
     async def search_zvv(self, event: AstrMessageEvent, mood: str):
-        """搜索张维为表情包候选。**先发完文字回复，再调用此工具选图发送。**
+        """搜索张维为表情包候选。**先发完文字回复，再调用此工具。发图后闭嘴，别点评。**
 
         Args:
             mood(string): 用"情绪+话题"描述你要表达的梗。
@@ -383,6 +383,8 @@ class Main(Star):
     @filter.llm_tool(name="send_zvv")
     async def send_zvv(self, event: AstrMessageEvent, emoji_id: int):
         """发送选中的张维为表情包。必须先调用 search_zvv 获取候选，选好后再调用本工具发送。
+
+        重要：发完表情包就停，不要解释、不要点评、不要画蛇添足。张维为表情包像成语一样，摆出来就够了。
 
         Args:
             emoji_id(number): 编号，从 search_zvv 返回的列表中选。
