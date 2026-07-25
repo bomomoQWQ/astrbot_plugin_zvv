@@ -79,7 +79,7 @@ def check_and_download() -> bool:
             return False
         if not extract(zip_path, model_dir, "ONNX 模型"):
             return False
-        print("[init] ✅ 模型就绪")
+        print("[init] [OK] 模型就绪")
 
     # ── 下载图片 ──
     if need_images:
@@ -89,7 +89,7 @@ def check_and_download() -> bool:
             return False
         if not extract(zip_path, images_dir, "表情包图片"):
             return False
-        print(f"[init] ✅ 图片就绪 ({len(list(images_dir.iterdir()))} 张)")
+        print(f"[init] [OK] 图片就绪 ({len(list(images_dir.iterdir()))} 张)")
 
     print("[init] ========================================")
     print("[init]  初始化完成！重启 AstrBot 即可使用。")
