@@ -287,6 +287,11 @@ class Main(Star):
         engine = self._get_engine()
         query_vec = engine.encode(query)
         scores = np.dot(self._embeddings, query_vec)
+        # 乐子词加分：含"笑""荒谬""绷""笑话""黑色幽默"等的图 +15%
+        funny = ("笑", "荒谬", "绷", "笑话", "扯淡", "荒唐", "乐", "滑稽", "忽悠", "黑色幽默")
+        for idx, name in enumerate(self._image_names):
+            if any(w in name for w in funny):
+                scores[idx] += 0.15
         # 先取 top_k * 3 高分候选，再用 MMR 挑出多样化的 top_k
         pool_size = min(top_k * 3, len(self._image_names))
         pool_indices = np.argsort(scores)[::-1][:pool_size]
@@ -296,8 +301,8 @@ class Main(Star):
             for idx, i in enumerate(diverse)
         ]
 
-    def _mmr_select(self, candidates: np.ndarray, scores: np.ndarray, top_k: int, lam: float = 0.35) -> list:
-        """MMR 多样性重排：λ 越低结果越离谱越乐子。0.35 = 更看重不重复而非保守匹配。"""
+    def _mmr_select(self, candidates: np.ndarray, scores: np.ndarray, top_k: int, lam: float = 0.2) -> list:
+        """MMR 多样性重排，λ=0.2 极度偏向不重复，结果更离谱更乐子。"""
         remaining = list(candidates)
         selected = [remaining.pop(0)]  # 第一个选最高分
         while len(selected) < top_k and remaining:
