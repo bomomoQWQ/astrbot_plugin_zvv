@@ -31,6 +31,8 @@ QQ: [动画表情] 他什么都敢说.png
 - 416 张张维为语录，语义搜索跨关键词匹配
 - 双核 2GB 服务器就能跑
 
+> ⚠️ 首次启动需要 `pip install onnxruntime tokenizers numpy`，然后自动下载模型和图库（约 100MB），并预计算 416 张图向量（约 2-3 分钟）。之后秒启。
+
 ## 🙏 致谢
 
 - 模型：[moyangzhan/bge-base-zh-v1.5-onnx](https://huggingface.co/moyangzhan/bge-base-zh-v1.5-onnx)
