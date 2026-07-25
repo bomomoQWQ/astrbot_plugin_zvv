@@ -440,6 +440,21 @@ class Main(Star):
             yield event.chain_result([Image(file=str(path))])
 
     # ═══════════════════════════════════════
+    #  上下文注入（启发 AI 主动发图）
+    # ═══════════════════════════════════════
+
+    @filter.on_llm_request()
+    async def _nudge_emoji(self, event: AstrMessageEvent, req):
+        """每次 LLM 请求前注入提示，鼓励 AI 在回复后主动发张维为表情包。"""
+        try:
+            from astrbot.core.agent.message import TextPart
+            req.extra_user_content_parts.append(TextPart(
+                text="[系统提示] 回复完后，如果有合适的态度/情绪，调用 search_zvv 搜一张张维为表情包配图，选好后 send_zvv 发送。发完图就停，别点评。"
+            ))
+        except ImportError:
+            pass
+
+    # ═══════════════════════════════════════
     #  生命周期
     # ═══════════════════════════════════════
 
