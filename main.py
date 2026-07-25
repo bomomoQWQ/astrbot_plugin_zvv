@@ -431,7 +431,8 @@ class Main(Star):
             (Path(self.model_dir) / c).exists()
             for c in ("model_q8.onnx", "model_fp16.onnx", "model.onnx")
         )
-        if not onnx_ok:
+        if not onnx_ok or not self.image_dir.exists() or not any(self.image_dir.iterdir()):
+            logger.info("[ZVV] 模型或图片缺失，自动运行 init.py ...")
             logger.info("[ZVV] 模型缺失，自动运行 init.py 下载...")
             try:
                 from .init import check_and_download
