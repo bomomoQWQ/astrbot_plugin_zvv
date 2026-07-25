@@ -432,11 +432,15 @@ class Main(Star):
             for c in ("model_q8.onnx", "model_fp16.onnx", "model.onnx")
         )
         if not onnx_ok:
-            logger.error(
-                "[ZVV] 模型文件缺失！请运行 python init.py 下载，"
-                "或手动放置模型到 model_zvv/ 目录。"
-            )
-            return
+            logger.info("[ZVV] 模型缺失，自动运行 init.py 下载...")
+            try:
+                from .init import check_and_download
+                if not check_and_download():
+                    logger.error("[ZVV] 初始化失败，请手动运行 python init.py")
+                    return
+            except Exception as e:
+                logger.error(f"[ZVV] 自动初始化失败: {e}，请手动运行 python init.py")
+                return
 
         try:
             if not self._ensure_ready():
