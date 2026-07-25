@@ -291,8 +291,8 @@ class Main(Star):
         indices = np.argsort(scores)[::-1][:top_k]
 
         return [
-            {"id": int(i) + 1, "name": self._image_names[int(i)], "score": float(scores[int(i)])}
-            for i in indices
+            {"id": idx + 1, "name": self._image_names[int(i)], "score": float(scores[int(i)])}
+            for idx, i in enumerate(indices)
         ]
 
     # ══════════════════════════════
@@ -339,10 +339,10 @@ class Main(Star):
     async def search_zvv(self, event: AstrMessageEvent, mood: str):
         """搜索张维为表情包候选。**先发完文字回复，再调用此工具选图发送。**
 
-        调用时机：文字回复完后，用张维为语录配图增加趣味。
+        选择原则：优先挑最有梗、最诙谐、似崩非崩的那张，不要选太正经的。
 
         Args:
-            mood(string): 情绪/态度。好的例子: "对方太自信了" "这话很可笑" "表示赞同"
+            mood(string): 情绪/态度。好的例子: "对方太自信了" "这话很可笑" "这事完蛋了" "表示赞同"
         """
         event = _unwrap_event(event)
         mood = str(mood or "").strip()
