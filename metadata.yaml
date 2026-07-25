@@ -1,0 +1,10 @@
+name: astrbot_plugin_zvv
+display_name: 张维为表情包
+short_desc: 语义搜索张维为语录表情包，AI 自主选图发送
+desc: 内置 416 张表情包 + bge-base Q8 量化模型的语义搜索插件。AI 可主动调用 search_zvv 搜索候选、send_zvv 选图发送。支持 /zvv 手动命令。零配置开箱即用，双核 2GB 服务器轻松运行。
+version: 1.0.0
+author: 
+repo: 
+astrbot_version: ">=4.0"
+support_platforms:
+  - aiocqhttp

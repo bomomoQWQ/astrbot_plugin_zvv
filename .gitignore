@@ -1,0 +1,6 @@
+model_zvv/
+images/
+data/
+__pycache__/
+*.pyc
+.DS_Store
