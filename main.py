@@ -296,8 +296,8 @@ class Main(Star):
             for idx, i in enumerate(diverse)
         ]
 
-    def _mmr_select(self, candidates: np.ndarray, scores: np.ndarray, top_k: int, lam: float = 0.6) -> list:
-        """MMR 多样性重排：相关但不重复。lam 越大越看重相关度，越小越看重多样性。"""
+    def _mmr_select(self, candidates: np.ndarray, scores: np.ndarray, top_k: int, lam: float = 0.35) -> list:
+        """MMR 多样性重排：λ 越低结果越离谱越乐子。0.35 = 更看重不重复而非保守匹配。"""
         remaining = list(candidates)
         selected = [remaining.pop(0)]  # 第一个选最高分
         while len(selected) < top_k and remaining:
@@ -358,7 +358,8 @@ class Main(Star):
             mood(string): "情绪+话题"格式。用户说了具体话题就结合（如"嘲笑+印度被剃头"），
                 没说就只用当前聊天的整体氛围（如"乐子""绷不住了""表示赞同"），不要编话题。
 
-        选择原则：优先挑最乐子、最贻笑大方、最似绷非绷的那张，避开正经说教的。像"国际笑话""挺搞笑的""笑掉大牙"这类优先。 "表示赞同"
+        选择原则：优先挑最乐子、最嘲讽、最绷不住的那张。避开正经说教和官方口吻的。
+        好的方向："国际笑话""笑掉大牙""这就很幽默了""你行你上啊"。不要选"我们要自信""我们要团结"这种。 "表示赞同"
         """
         event = _unwrap_event(event)
         mood = str(mood or "").strip()
