@@ -253,6 +253,8 @@ class Main(Star):
             all_vecs.append(batch_vecs)
             if len(all_vecs) * batch_size % 128 < batch_size:
                 logger.info(f"[ZVV] 进度: {min(i + batch_size, len(files))}/{len(files)}")
+            # 每批让出 CPU，避免卡死 AstrBot
+            time.sleep(0.05)
 
         embeddings = np.concatenate(all_vecs, axis=0).astype(np.float32)
 
